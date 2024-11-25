@@ -32,8 +32,8 @@ const saveAllButton = document.getElementById('save-all-sections');
 document.body.insertAdjacentHTML(
   'beforeend',
   `
-    <p>Total Amount: <span id="global-total">0.00</span></p>
-    <p>Actual Total Amount: <span id="actual-total">0.00</span></p>
+    <p class="total">Total Amount: <span id="global-total">0.00</span> tk</p>
+    <p class="total">Actual Total Amount: <span id="actual-total">0.00</span> tk</p>
   `
 );
 

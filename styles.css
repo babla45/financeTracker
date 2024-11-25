@@ -1,15 +1,23 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f7f7f7;
+  font-family: Arial, sans-serif;
+  background-color: #f7f7f7;
+  font-weight: bold;
+  font-family:'Courier New', Courier, monospace, sans-serif, monospace;
+  text-align: center;
+  width: 60vw;
+  margin-left: 20vw;
+  height: 80vh;
+  margin-top: 10vh;
   }
   
   h1 {
     text-align: center;
-    color: #333;
+    color: #101a72;
+    box-shadow: 0px 1px 9px 1px rgb(104, 60, 248);
+    border-radius: 12px;
+    padding: 5px 0px;
   }
-  
+
   #sections-container {
     margin: 20px 0;
   }
@@ -18,20 +26,25 @@ body {
     background-color: #fff;
     margin-bottom: 20px;
     padding: 15px;
+    margin-bottom: 25px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 1px 9px 1px rgb(104, 60, 248);
+    text-align: center;
   }
   
   table {
-    width: 100%;
+    margin-left: 2.5%;
+    width: 95%;
+    font-size: 25px;
     border-collapse: collapse;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0px 1px 9px 1px rgb(3, 255, 24);
   }
   
   table th, table td {
-    border: 1px solid #ddd;
+    border: 1px solid #ada4a4;
     padding: 8px;
-    text-align: left;
+    text-align: center;
   }
   
   button {
@@ -41,9 +54,23 @@ body {
     padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
+    box-shadow: 0px 2px 4px -1.5px rgb(243, 55, 55);
   }
   
   button:hover {
-    background-color: #218838;
+    background-color: #3a0641;
+    color: white;
+    font-weight: bold;
   }
   
+
+p.total{
+    color: rgba(255, 255, 255, 0.959);
+    background-color: black;
+    padding: 5px;
+    font-size: 35px;
+    font-weight: bold;
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px -0.3px rgb(0, 0, 0);
+
+  }
