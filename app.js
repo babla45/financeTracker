@@ -1,6 +1,6 @@
 // Firebase Firestore references
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
-import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
 // Firebase config and initialization
 const firebaseConfig = {
@@ -21,24 +21,45 @@ const db = getFirestore(app);
 const sectionsContainer = document.getElementById('sections-container');
 const addSectionButton = document.getElementById('add-section');
 
+// Add a "Save All Sections" button at the end of the page
+document.body.insertAdjacentHTML(
+  'beforeend',
+  `<button id="save-all-sections">Save All Sections</button>`
+);
+const saveAllButton = document.getElementById('save-all-sections');
+
+// Add global total and actual total display
+document.body.insertAdjacentHTML(
+  'beforeend',
+  `
+    <p>Total Amount: <span id="global-total">0.00</span></p>
+    <p>Actual Total Amount: <span id="actual-total">0.00</span></p>
+  `
+);
+
 // Event listener for the "Add Section" button
 addSectionButton.addEventListener('click', () => {
-  addSection('New Section', []); // Adds a new section with default values
+  const uniqueSectionName = `New Section - ${Date.now()}`; // Unique name for new sections
+  addSection(uniqueSectionName, []); // Adds a new section with default values
 });
+
+// Event listener for the "Save All Sections" button
+saveAllButton.addEventListener('click', saveAllSections);
 
 // Reference to sections collection and load sections
 const sectionsRef = collection(db, 'sections');
 getDocs(sectionsRef)
   .then(snapshot => {
+    sectionsContainer.innerHTML = ''; // Clear existing sections
     snapshot.forEach(doc => {
       const data = doc.data();
-      addSection(doc.id, data.data || []); // Assumes your document has a "data" field
+      addSection(doc.id, data.data || []); // Recreate sections dynamically
     });
     updateGlobalTotal();
   })
-  .catch(error => console.error("Error fetching sections:", error));
+  .catch(error => console.error('Error fetching sections:', error));
 
-// Function to add a new section dynamically
+// Function to add a new section
 function addSection(sectionName = 'New Section', data = []) {
   const section = document.createElement('section');
   section.innerHTML = `
@@ -65,15 +86,22 @@ function addSection(sectionName = 'New Section', data = []) {
     </table>
     <p class="section-total">Section Total: <span>0</span></p>
     <button class="add-row">Add Row</button>
-    <button class="save-section">Save Section</button>
     <button class="delete-section">Delete Section</button>
   `;
   sectionsContainer.appendChild(section);
 
-  // Add event listeners
+  // Event listeners for section actions
   section.querySelector('.add-row').addEventListener('click', () => addRow(section));
-  section.querySelector('.save-section').addEventListener('click', () => saveSection(section));
   section.querySelector('.delete-section').addEventListener('click', () => deleteSection(section));
+
+  section.querySelectorAll('.delete-row').forEach(deleteButton => {
+    deleteButton.addEventListener('click', event => {
+      const row = event.target.closest('tr');
+      row.remove();
+      updateSectionTotal(section);
+    });
+  });
+
   section.querySelectorAll('[contenteditable="true"]').forEach(cell =>
     cell.addEventListener('input', () => updateSectionTotal(section))
   );
@@ -81,9 +109,22 @@ function addSection(sectionName = 'New Section', data = []) {
   updateSectionTotal(section); // Update total on load
 }
 
-// Other functions (addRow, updateSectionTotal, etc.) remain unchanged
-// Ensure those functions are included in the script.
+// Function to delete a section
+function deleteSection(section) {
+  const sectionName = section.querySelector('h2').innerText.trim();
+  const confirmDelete = confirm(`Are you sure you want to delete the section "${sectionName}"?`);
 
+  if (confirmDelete) {
+    const sectionDocRef = doc(db, 'sections', sectionName);
+    deleteDoc(sectionDocRef)
+      .then(() => {
+        section.remove();
+        updateGlobalTotal();
+        console.log(`Section "${sectionName}" deleted successfully.`);
+      })
+      .catch(error => console.error(`Error deleting section "${sectionName}":`, error));
+  }
+}
 
 // Function to add a new row to a section
 function addRow(section) {
@@ -98,7 +139,6 @@ function addRow(section) {
   `;
   tbody.appendChild(row);
 
-  // Add event listener for delete button
   row.querySelector('.delete-row').addEventListener('click', () => {
     row.remove();
     updateSectionTotal(section);
@@ -107,6 +147,32 @@ function addRow(section) {
   row.querySelectorAll('[contenteditable="true"]').forEach(cell =>
     cell.addEventListener('input', () => updateSectionTotal(section))
   );
+}
+
+// Function to save all sections to Firebase
+function saveAllSections() {
+  const sections = Array.from(sectionsContainer.children);
+  const sectionNames = sections.map(section => section.querySelector('h2').innerText.trim());
+  const hasDuplicates = new Set(sectionNames).size !== sectionNames.length;
+
+  if (hasDuplicates) {
+    alert('Duplicate section names found! Please ensure all section names are unique.');
+    return;
+  }
+
+  const savePromises = sections.map(section => {
+    const sectionName = section.querySelector('h2').innerText.trim();
+    const rows = Array.from(section.querySelectorAll('tbody tr')).map(row => ({
+      description: row.cells[0]?.innerText.trim() || '',
+      amount: parseFloat(row.cells[1]?.innerText.trim()) || 0,
+    }));
+
+    return setDoc(doc(db, 'sections', sectionName), { data: rows });
+  });
+
+  Promise.all(savePromises)
+    .then(() => alert('All sections saved successfully!'))
+    .catch(error => console.error('Error saving sections:', error));
 }
 
 // Function to update the total for a section
@@ -118,7 +184,7 @@ function updateSectionTotal(section) {
   }, 0);
 
   section.querySelector('.section-total span').innerText = sectionTotal.toFixed(2);
-  updateGlobalTotal(); // Update global totals whenever a section total changes
+  updateGlobalTotal();
 }
 
 // Function to update global total and actual total
@@ -139,12 +205,3 @@ function updateGlobalTotal() {
   document.getElementById('global-total').innerText = globalTotal.toFixed(2);
   document.getElementById('actual-total').innerText = (globalTotal - payableTotal).toFixed(2);
 }
-
-// Add global total and actual total display
-document.body.insertAdjacentHTML(
-  'beforeend',
-  `
-    <p>Total Amount: <span id="global-total">0.00</span></p>
-    <p>Actual Total Amount: <span id="actual-total">0.00</span></p>
-  `
-);
