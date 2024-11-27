@@ -1,29 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dynamic Finance Tracker</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
 
-  <script type="module" src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"></script>
-  <script type="module" src="app.js"></script>
-  
-
+    <style>
+        body {
+            text-align: center;
+            font-size: 65px;
+            background-color: rgb(190, 238, 230);
+        }
+        input {
+            padding: 5px 20px;
+            border-radius: 12px;
+            text-align: center;
+            color: green;
+            box-shadow: 0px 2px 9px 1.5px rgb(0, 0, 0);
+        }
+        .container{
+            height: 25vh;
+            padding-top: 25vh;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-
-
-    <h1>Finance Tracker</h1>
-    <div id="sections-container">
-      <!-- Sections for Cash, Receivable, Payable, and Agent Banking will be dynamically added here -->
+    <div class="container">
+        <div>
+            <input type="text" id="password" placeholder="Enter password">
+        </div>
+        <div>
+            <input type="button" value="Enter" onclick="checkPassword()">
+        </div>
     </div>
-    <button id="add-section">Add Section</button>
-  
 
+    <script>
+        function encrypt(s, f) {
+            var strArr = s.split(''); // Convert the string to an array of characters
+            var sum;
 
+            function process() {
+                sum = strArr.length;
 
+                for (var i = 0; i < strArr.length; i++) {
+                    sum += strArr[i].charCodeAt(0);
+                    sum %= 128;
+                    var c = Math.max(37, sum);
+                    var newChar = strArr[i].charCodeAt(0) ^ c;
+                    if (newChar <= 33) {
+                        newChar += 32;
+                    } else {
+                        newChar--;
+                    }
+                    strArr[i] = String.fromCharCode(newChar);
+                }
+            }
 
+            while (f-- > 0) {
+                process();
+            }
+
+            return strArr.join(''); // Convert the array back to a string
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('password').value;
+            const encrypted = encrypt(input, 5);
+            console.log("password="+encrypted) // Adjust `2` to match your encryption iterations
+            const expectedEncrypted = "#!5"; // Encrypt 'babla' with the same iterations
+
+            if (encrypted === expectedEncrypted) {
+                window.location.href = 'main.html';
+            } else {
+                alert('Incorrect password!');
+            }
+        }
+    </script>
 </body>
 </html>
