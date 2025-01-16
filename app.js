@@ -41,9 +41,12 @@ document.body.insertAdjacentHTML(
   `
 );
 
+// Add this at the top with other global variables
+let sectionCounter = 1;
+
 // Event listener for the "Add Section" button
 addSectionButton.addEventListener('click', () => {
-  const uniqueSectionName = `New Section - ${Date.now()}`; // Unique name for new sections
+  const uniqueSectionName = `New Section ${sectionCounter++}`; // Simpler naming
   addSection(uniqueSectionName, []); // Adds a new section with default values
 });
 
@@ -55,8 +58,14 @@ const sectionsRef = collection(db, 'sections');
 getDocs(sectionsRef)
   .then(snapshot => {
     sectionsContainer.innerHTML = ''; // Clear existing sections
+    // Reset counter and find highest number
+    sectionCounter = 1;
     snapshot.forEach(doc => {
       const data = doc.data();
+      const match = doc.id.match(/New Section (\d+)/);
+      if (match) {
+        sectionCounter = Math.max(sectionCounter, parseInt(match[1]) + 1);
+      }
       addSection(doc.id, data.data || []); // Recreate sections dynamically
     });
     updateGlobalTotal();
